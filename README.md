@@ -40,13 +40,6 @@ Caching of scripts cross domain only works if the CORS header is set on the remo
 ```javascript
 requireScript(name, version, url, callback)
 ```
-provides the external API. The internal API consits of 3 functions.
-```javascript
-_loadScript(url, name, version, callback)
-_injectScript(content, name, version, callback)
-_cacheScript(name, version, url)
-```
-Please read the code to learn how they work (they are very short!).
 
 ## License
 
