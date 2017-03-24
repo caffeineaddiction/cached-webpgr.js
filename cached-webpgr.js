@@ -1,4 +1,33 @@
+/*
+ * cached-webpgr.js - simple localStorage based caching of JavaScript files
+ * https://github.com/webpgr/cached-webpgr.js
+ * Author: Webpgr http://webpgr.com by Falko Krause <falko@webpgr.com>
+ * License: MIT
+ *
+ * usage example:
+ *  ```
+ *  requireScript('jquery', '1.11.2', 'http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js', function(){
+ *    requireScript('examplejs', '0.0.3', 'example.js');
+ *  });
+ *  ```
+ */
+
 (function() {
+
+  /**
+   * ##_lsTest
+   * This function tests the functionality of Local Storage
+   **/
+  function _lsTest(){
+      try {
+          localStorage.setItem('_', '_');
+          localStorage.removeItem('_');
+          return true;
+      } catch(e) {
+          return false;
+      }
+  }
+
   /**
    * ##_cacheScript
    * This function requires IE7+, Firefox, Chrome, Opera, Safari.
@@ -47,11 +76,11 @@
       requireScript(name, version, url, callback);
       return;
     }
-    var s = document.createElement('script');
-    s.type = "text/javascript";
+    var el = document.createElement('script');
+    el.type = "text/javascript";
     var scriptContent = document.createTextNode(content.content);
-    s.appendChild(scriptContent);
-    document.getElementsByTagName("head")[0].appendChild(s);
+    el.appendChild(scriptContent);
+    document.getElementsByTagName("head")[0].appendChild(el);
     if (callback) callback();
   }
 
@@ -65,13 +94,31 @@
    * @param {Function} callback function that is extecuted once the script is loaded
    */
   function requireScript(name, version, url, callback) {
-    var content = localStorage.getItem(name);
-    if (content == null) {
-      _cacheScript(name, version, url, callback)
+    if (_lsTest()) {
+      var content = localStorage.getItem(name);
+      if (content == null) {
+        _cacheScript(name, version, url, callback)
+      } else {
+        _injectScript(name, version, url, content, callback);
+      }
     } else {
-      _injectScript(name, version, url, content, callback);
+      var el = document.createElement('script');
+      if (el.readyState) { //IE
+        el.onreadystatechange = function() {
+          if (el.readyState == "loaded" || el.readyState == "complete") {
+            if (callback) callback();
+          }
+        };
+      } else { //Others
+        el.onload = function() {
+          if (callback) callback();
+        };
+      }
+      el.setAttribute("src", url);
+      document.getElementsByTagName("head")[0].appendChild(el)
     }
   }
-
   window.requireScript = requireScript;
 })();
+
+
